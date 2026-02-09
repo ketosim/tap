@@ -69,6 +69,35 @@ export default function Tap() {
     }
   }
 
+  const handleDelete = async () => {
+    if (!current) return
+    
+    const confirmed = confirm(`Delete "${current.title}"? This cannot be undone.`)
+    if (!confirmed) return
+
+    try {
+      const response = await fetch(`/api/techniques/${current.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) throw new Error('Delete failed')
+
+      // Remove from local state
+      const newTechniques = techniques.filter(t => t.id !== current.id)
+      setTechniques(newTechniques)
+      
+      // Reset to first technique or show empty state
+      if (newTechniques.length > 0) {
+        setCurrentIndex(0)
+      }
+      setEditMode(false)
+      
+    } catch (error) {
+      console.error('Delete failed:', error)
+      alert('Failed to delete technique')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white">
@@ -170,17 +199,28 @@ export default function Tap() {
             )
           )}
 
-          {/* Save button */}
+          {/* Save and Delete buttons */}
           {editMode && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                handleSave()
-              }}
-              className="w-full py-3 bg-blue-600 rounded-lg hover:bg-blue-700 font-semibold"
-            >
-              Save Changes
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleSave()
+                }}
+                className="flex-1 py-3 bg-blue-600 rounded-lg hover:bg-blue-700 font-semibold"
+              >
+                Save Changes
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleDelete()
+                }}
+                className="px-6 py-3 bg-red-600 rounded-lg hover:bg-red-700 font-semibold"
+              >
+                Delete
+              </button>
+            </div>
           )}
           
           {/* Progress */}
