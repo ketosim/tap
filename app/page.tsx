@@ -96,84 +96,104 @@ export default function Tap() {
 
   return (
     <div 
-      onClick={handleTap}
-      className="min-h-screen flex flex-col items-center justify-center p-6 bg-black text-white cursor-pointer"
+      onClick={editMode ? undefined : handleTap}
+      className="min-h-screen flex flex-col bg-black text-white cursor-pointer"
     >      
-      <div className="max-w-2xl w-full space-y-6">
-        {/* Top buttons */}
+      {/* Top buttons - Fixed */}
+      <div className="fixed top-0 left-0 right-0 z-10 p-6">
         <div className="flex justify-center gap-8">
           <button
-            onClick={() => router.push('/admin/add')}
+            onClick={(e) => {
+              e.stopPropagation()
+              router.push('/admin/add')
+            }}
             className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700"
           >
             + Add New
           </button>
           <button
-            onClick={() => setEditMode(!editMode)}
+            onClick={(e) => {
+              e.stopPropagation()
+              setEditMode(!editMode)
+            }}
             className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700"
           >
-            {editMode ? 'Cancel      ' : 'Edit'}
+            {editMode ? 'Cancel' : 'Edit'}
           </button>
         </div>
+      </div>
 
-        {/* GIF */}
-        <div onClick={handleTap} className="cursor-pointer">
+      {/* GIF - Center */}
+      <div className="flex-1 flex items-center justify-center p-6 pt-24 pb-64">
+        <div className="max-w-2xl w-full">
           <img 
             src={current.gifUrl} 
             alt={current.title}
             className="w-full rounded-lg"
           />
         </div>
-        
-        {/* Title */}
-        {editMode ? (
-          <input
-            type="text"
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            className="w-full text-3xl font-bold text-center bg-gray-900 border border-gray-700 rounded-lg p-3"
-          />
-        ) : (
-          <h2 className="text-3xl font-bold text-center">
-            {current.title}
-          </h2>
-        )}
-        
-        {/* Note */}
-        {editMode ? (
-          <textarea
-            value={editNote}
-            onChange={(e) => setEditNote(e.target.value)}
-            rows={3}
-            className="w-full text-gray-300 text-center text-lg bg-gray-900 border border-gray-700 rounded-lg p-3"
-            placeholder="Add a note..."
-          />
-        ) : (
-          <p className="text-gray-300 text-center text-lg">
-            {current.note || ' '}
-          </p>
-        )}
+      </div>
 
-        {/* Save button */}
-        {editMode && (
-          <button
-            onClick={handleSave}
-            className="w-full py-3 bg-blue-600 rounded-lg hover:bg-blue-700 font-semibold"
-          >
-            Save Changes
-          </button>
-        )}
-        
-        {/* Progress */}
-        <p className="text-gray-500 text-center">
-          {currentIndex + 1} of {techniques.length}
-        </p>
-        
-        {!editMode && (
-          <p className="text-gray-600 text-center text-sm">
-            Tap GIF to continue
+      {/* Bottom content - Fixed */}
+      <div className="fixed bottom-0 left-0 right-0 bg-black p-6">
+        <div className="max-w-2xl mx-auto space-y-4">
+          {/* Title */}
+          {editMode ? (
+            <input
+              type="text"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full text-3xl font-bold text-center bg-gray-900 border border-gray-700 rounded-lg p-3"
+            />
+          ) : (
+            <h2 className="text-3xl font-bold text-center">
+              {current.title}
+            </h2>
+          )}
+          
+          {/* Note */}
+          {editMode ? (
+            <textarea
+              value={editNote}
+              onChange={(e) => setEditNote(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              rows={3}
+              className="w-full text-gray-300 text-center text-lg bg-gray-900 border border-gray-700 rounded-lg p-3"
+              placeholder="Add a note..."
+            />
+          ) : (
+            current.note && (
+              <p className="text-gray-300 text-center text-lg">
+                {current.note}
+              </p>
+            )
+          )}
+
+          {/* Save button */}
+          {editMode && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                handleSave()
+              }}
+              className="w-full py-3 bg-blue-600 rounded-lg hover:bg-blue-700 font-semibold"
+            >
+              Save Changes
+            </button>
+          )}
+          
+          {/* Progress */}
+          <p className="text-gray-500 text-center">
+            {currentIndex + 1} of {techniques.length}
           </p>
-        )}
+          
+          {!editMode && (
+            <p className="text-gray-600 text-center text-sm">
+              Tap anywhere to continue
+            </p>
+          )}
+        </div>
       </div>
     </div>
   )
