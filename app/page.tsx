@@ -12,11 +12,24 @@ export default function Tap() {
   const [editTitle, setEditTitle] = useState('')
   const [editNote, setEditNote] = useState('')
   const [loading, setLoading] = useState(true)
+  const [authChecked, setAuthChecked] = useState(false)
 
   const current = techniques[currentIndex]
 
+  // Check auth on mount
+  useEffect(() => {
+    const auth = localStorage.getItem('tap-auth')
+    if (!auth) {
+      router.push('/login')
+      return
+    }
+    setAuthChecked(true)
+  }, [router])
+
   // Load techniques
   useEffect(() => {
+    if (!authChecked) return
+
     fetch('/api/techniques')
       .then(res => res.json())
       .then(data => {
@@ -27,7 +40,7 @@ export default function Tap() {
         console.error('Failed to load:', err)
         setLoading(false)
       })
-  }, [])
+  }, [authChecked])
 
   // Sync edit fields when technique changes
   useEffect(() => {
@@ -82,11 +95,9 @@ export default function Tap() {
 
       if (!response.ok) throw new Error('Delete failed')
 
-      // Remove from local state
       const newTechniques = techniques.filter(t => t.id !== current.id)
       setTechniques(newTechniques)
       
-      // Reset to first technique or show empty state
       if (newTechniques.length > 0) {
         setCurrentIndex(0)
       }
@@ -98,7 +109,13 @@ export default function Tap() {
     }
   }
 
-  if (loading) {
+  const handleLogout = () => {
+    localStorage.removeItem('tap-auth')
+    document.cookie = 'tap-auth=; path=/; max-age=0'
+    router.push('/login')
+  }
+
+  if (!authChecked || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white">
         <div className="text-center">
@@ -130,25 +147,37 @@ export default function Tap() {
     >      
       {/* Top buttons - Fixed */}
       <div className="fixed top-0 left-0 right-0 z-10 p-6">
-        <div className="flex justify-center gap-8">
+        <div className="flex justify-between items-center">
           <button
             onClick={(e) => {
               e.stopPropagation()
-              router.push('/admin/add')
+              handleLogout()
             }}
-            className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700"
+            className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 text-sm"
           >
-            + Add New
+            Logout
           </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              setEditMode(!editMode)
-            }}
-            className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700"
-          >
-            {editMode ? 'Cancel' : 'Edit'}
-          </button>
+          
+          <div className="flex gap-8">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                router.push('/admin/add')
+              }}
+              className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700"
+            >
+              + Add New
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setEditMode(!editMode)
+              }}
+              className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700"
+            >
+              {editMode ? 'Cancel' : 'Edit'}
+            </button>
+          </div>
         </div>
       </div>
 
