@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { upload } from '@vercel/blob/client'
 
 export default function AddTechnique() {
   const router = useRouter()
@@ -30,25 +31,18 @@ export default function AddTechnique() {
     setUploading(true)
 
     try {
-      // Step 1: Upload GIF to Vercel Blob
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      // Upload directly to Blob from client
+      const blob = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload-url',
       })
 
-      if (!uploadRes.ok) throw new Error('Upload failed')
-
-      const { url } = await uploadRes.json()
-
-      // Step 2: Save technique to database
+      // Save technique to database
       const createRes = await fetch('/api/techniques', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          gifUrl: url,
+          gifUrl: blob.url,
           title,
           note,
           tags: [],
@@ -61,7 +55,7 @@ export default function AddTechnique() {
       router.push('/')
     } catch (error) {
       console.error('Error:', error)
-      alert('Failed to add technique')
+      alert('Failed to add technique: ' + (error as Error).message)
     } finally {
       setUploading(false)
     }
