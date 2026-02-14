@@ -35,8 +35,7 @@ export default function Login() {
             </label>
             <input
               type="password"
-              inputMode="numeric"
-              pattern="[0-9]*"
+
               value={pin}
               onChange={(e) => {
                 setPin(e.target.value)
