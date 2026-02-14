@@ -30,9 +30,13 @@ export default function AddTechnique() {
 
     setUploading(true)
 
-    try {
+      try {
+      // Create unique filename with timestamp
+      const timestamp = Date.now()
+      const uniqueFilename = `${timestamp}-${file.name}`
+      
       // Upload directly to Blob from client
-      const blob = await upload(file.name, file, {
+      const blob = await upload(uniqueFilename, file, {
         access: 'public',
         handleUploadUrl: '/api/upload-url',
       })
