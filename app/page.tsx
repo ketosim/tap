@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Technique } from './db/schema'
 
@@ -13,6 +13,8 @@ export default function Tap() {
   const [editNote, setEditNote] = useState('')
   const [loading, setLoading] = useState(true)
   const [authChecked, setAuthChecked] = useState(false)
+  const [imageReady, setImageReady] = useState(false)
+  const loadedGifUrls = useRef(new Set<string>())
 
   const current = techniques[currentIndex]
 
@@ -47,8 +49,31 @@ export default function Tap() {
     if (current) {
       setEditTitle(current.title)
       setEditNote(current.note || '')
+      setImageReady(loadedGifUrls.current.has(current.gifUrl))
     }
   }, [current])
+
+  const preloadNextGif = (fromIndex: number) => {
+    if (techniques.length < 2) return
+
+    const nextIndex = (fromIndex + 1) % techniques.length
+    const nextUrl = techniques[nextIndex]?.gifUrl
+
+    if (!nextUrl || loadedGifUrls.current.has(nextUrl)) return
+
+    const nextImage = new Image()
+    nextImage.decoding = 'async'
+    nextImage.onload = () => loadedGifUrls.current.add(nextUrl)
+    nextImage.src = nextUrl
+  }
+
+  const handleGifLoad = () => {
+    if (!current) return
+
+    loadedGifUrls.current.add(current.gifUrl)
+    setImageReady(true)
+    preloadNextGif(currentIndex)
+  }
 
   const handleTap = () => {
     if (!editMode && techniques.length > 0) {
@@ -183,11 +208,24 @@ export default function Tap() {
 
       {/* GIF - Center */}
       <div className="flex-1 flex items-center justify-center p-6 pt-24 pb-64">
-        <div className="max-w-2xl w-full">
+        <div className="relative max-w-2xl w-full min-h-[40vh] flex items-center justify-center">
+          {!imageReady && (
+            <div className="absolute inset-0 flex items-center justify-center" role="status">
+              <div className="h-10 w-10 animate-spin rounded-full border-2 border-gray-700 border-t-white" />
+              <span className="sr-only">Loading technique</span>
+            </div>
+          )}
           <img 
+            key={current.id}
             src={current.gifUrl} 
             alt={current.title}
-            className="w-full rounded-lg"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+            onLoad={handleGifLoad}
+            className={`w-full rounded-lg transition-opacity duration-150 ${
+              imageReady ? 'opacity-100' : 'opacity-0'
+            }`}
           />
         </div>
       </div>
