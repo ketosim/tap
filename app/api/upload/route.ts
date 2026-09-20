@@ -1,40 +1,37 @@
-import { put } from '@vercel/blob'
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client'
 import { NextResponse } from 'next/server'
 
-export const runtime = 'nodejs'
-export const maxDuration = 60
+export async function POST(request: Request): Promise<NextResponse> {
+  const body = (await request.json()) as HandleUploadBody
 
-export async function POST(request: Request) {
-  console.log('=== UPLOAD API CALLED ===')
-  
   try {
-    console.log('Getting formData...')
-    const formData = await request.formData()
-    
-    console.log('Getting file...')
-    const file = formData.get('file') as File
-    
-    console.log('File received:', file?.name, file?.size, 'bytes')
-    
-    if (!file) {
-      return NextResponse.json(
-        { error: 'No file provided' },
-        { status: 400 }
-      )
-    }
-
-    console.log('Uploading to Vercel Blob...')
-    const blob = await put(file.name, file, {
-      access: 'public',
+    const jsonResponse = await handleUpload({
+      body,
+      request,
+      onBeforeGenerateToken: async () => {
+        // Add authentication here if needed
+        return {
+          allowedContentTypes: [
+            'image/gif',
+            'video/mp4',
+            'video/webm',
+            'video/quicktime',
+            'video/x-m4v',
+          ],
+          maximumSizeInBytes: 100 * 1024 * 1024,
+          tokenPayload: JSON.stringify({}),
+        }
+      },
+      onUploadCompleted: async () => {
+        // Optional: Do something after upload completes
+      },
     })
 
-    console.log('Upload successful:', blob.url)
-    return NextResponse.json({ url: blob.url })
+    return NextResponse.json(jsonResponse)
   } catch (error) {
-    console.error('Upload error:', error)
     return NextResponse.json(
-      { error: 'Upload failed' },
-      { status: 500 }
+      { error: (error as Error).message },
+      { status: 400 }
     )
   }
 }
