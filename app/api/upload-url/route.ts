@@ -11,7 +11,13 @@ export async function POST(request: Request): Promise<NextResponse> {
       onBeforeGenerateToken: async () => {
         // Add authentication here if needed
         return {
-          allowedContentTypes: ['image/gif'],
+          allowedContentTypes: [
+            'image/gif',
+            'video/mp4',
+            'video/quicktime',
+            'video/webm',
+            'video/x-m4v',
+          ],
           tokenPayload: JSON.stringify({}),
         }
       },
