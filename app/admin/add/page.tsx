@@ -1,3 +1,4 @@
+```tsx
 'use client'
 
 import { useState } from 'react'
@@ -14,27 +15,41 @@ export default function AddTechnique() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
-    if (selectedFile) {
-      setFile(selectedFile)
-      setPreview(URL.createObjectURL(selectedFile))
+
+    if (!selectedFile) return
+
+    const allowedTypes = [
+      'image/gif',
+      'video/mp4',
+      'video/quicktime',
+      'video/webm',
+    ]
+
+    if (!allowedTypes.includes(selectedFile.type)) {
+      alert('Please upload a GIF, MP4, MOV, or WebM file.')
+      e.target.value = ''
+      return
     }
+
+    setFile(selectedFile)
+    setPreview(URL.createObjectURL(selectedFile))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!file || !title) {
-      alert('Please add a GIF and title')
+      alert('Please add a GIF or video and a title')
       return
     }
 
     setUploading(true)
 
-      try {
+    try {
       // Create unique filename with timestamp
       const timestamp = Date.now()
       const uniqueFilename = `${timestamp}-${file.name}`
-      
+
       // Upload directly to Blob from client
       const blob = await upload(uniqueFilename, file, {
         access: 'public',
@@ -53,7 +68,9 @@ export default function AddTechnique() {
         }),
       })
 
-      if (!createRes.ok) throw new Error('Failed to save technique')
+      if (!createRes.ok) {
+        throw new Error('Failed to save technique')
+      }
 
       // Success! Redirect to main page
       router.push('/')
@@ -74,11 +91,12 @@ export default function AddTechnique() {
           {/* File Upload */}
           <div>
             <label className="block text-sm font-medium mb-2">
-              GIF File
+              GIF or Video File
             </label>
+
             <input
               type="file"
-              accept=".gif"
+              accept=".gif,.mp4,.mov,.webm,image/gif,video/mp4,video/quicktime,video/webm"
               onChange={handleFileChange}
               className="block w-full text-sm text-gray-400
                 file:mr-4 file:py-2 file:px-4
@@ -90,16 +108,27 @@ export default function AddTechnique() {
           </div>
 
           {/* Preview */}
-          {preview && (
+          {preview && file && (
             <div>
               <label className="block text-sm font-medium mb-2">
                 Preview
               </label>
-              <img 
-                src={preview} 
-                alt="Preview" 
-                className="w-full max-w-md rounded-lg"
-              />
+
+              {file.type.startsWith('video/') ? (
+                <video
+                  src={preview}
+                  controls
+                  playsInline
+                  loop
+                  className="w-full max-w-md rounded-lg"
+                />
+              ) : (
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="w-full max-w-md rounded-lg"
+                />
+              )}
             </div>
           )}
 
@@ -108,6 +137,7 @@ export default function AddTechnique() {
             <label className="block text-sm font-medium mb-2">
               Technique Title *
             </label>
+
             <input
               type="text"
               value={title}
@@ -123,6 +153,7 @@ export default function AddTechnique() {
             <label className="block text-sm font-medium mb-2">
               Quick Note
             </label>
+
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
@@ -141,6 +172,7 @@ export default function AddTechnique() {
             >
               {uploading ? 'Uploading...' : 'Add Technique'}
             </button>
+
             <button
               type="button"
               onClick={() => router.push('/')}
@@ -154,3 +186,4 @@ export default function AddTechnique() {
     </div>
   )
 }
+```
