@@ -54,6 +54,7 @@ export default function AddTechnique() {
       const blob = await upload(uniqueFilename, file, {
         access: 'public',
         handleUploadUrl: '/api/upload-url',
+        multipart: true,
       })
 
       // Save technique to database
