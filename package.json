@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@vercel/blob": "^2.2.0",
     "@vercel/postgres": "^0.10.0",
     "drizzle-orm": "^0.45.1",
